@@ -7,20 +7,8 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0a7a28">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-
-    /* zamknutí posouvání pozadí při otevřeném popupu */
-    body.no-scroll {
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* jistota překrytí i na mobilech */
-    .overlay { z-index: 10000; }
-    .popup   { z-index: 10001; }
 
     /* Nadpisy bez mezer */
     h2 { margin: 0; }
@@ -50,29 +38,19 @@
 
    .icon {
   position: absolute;
-  width: clamp(9px, 1.6vmin, 17px);
-  height: clamp(9px, 1.6vmin, 17px);
+  width: 32px;
+  height: 32px;
   background-color: rgb(0, 14, 124);
   border-radius: 50%;
   cursor: pointer;
   text-align: center;
   color: white;
-  font-size: clamp(6px, 1.2vmin, 14px);
-  line-height: 1;        /* lepší s emoji */
-  display: flex;         /* vycentrování textu */
-  align-items: center;   /* vertikální centrování */
-  justify-content: center; /* horizontální centrování */
+  font-size: 18px;   /* větší text uvnitř */
+  line-height: 32px; /* zarovnání textu na střed */
   z-index: 3;
 }
 
- /* jemné zvětšení na velmi malých mobilech */
-    @media (max-width: 420px) {
-      .icon {
-        width: clamp(18px, 4.2vmin, 36px);
-        height: clamp(18px, 4.2vmin, 36px);
-        font-size: clamp(11px, 2vmin, 18px);
-      }
-}
+
     /* ---- barvy podle typu ---- */
     .icon-gold   { background-color: rgb(67, 57, 1); color: black; }            /* světla */
     .icon-blue   { background-color: deepskyblue; }                   /* klima, chlaďáky, led */
@@ -84,7 +62,6 @@
     .icon-brown  { background-color: rgb(92, 44, 0); }                /* kávovar */
     /* -------------------------------- */
 
-     /* --- POPUP upravený pro mobil --- */
     .popup {
       display: none;
       position: fixed;
@@ -93,18 +70,12 @@
       transform: translate(-50%, -50%);
       background: #fff;
       border: 2px solid #333;
-      padding: 16px;
+      padding: 20px;
       z-index: 10;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
-
-      /* mobilní limity */
-      max-width: min(92vw, 720px);
-      max-height: 80vh;
-      overflow: auto;
-      border-radius: 10px;
     }
 
-    .popup button { margin-top: 10px; padding: 6px 12px; }
+    .popup button { margin-top: 10px; padding: 5px 10px; }
 
     .overlay {
       display: none;
