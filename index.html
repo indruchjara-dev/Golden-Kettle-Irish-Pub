@@ -6,6 +6,9 @@
   <!-- PWA: manifest + barva UI -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0a7a28">
+  <!-- ✅ důležité pro mobily -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
 <style>
   /* schovej obsah, dokud není ověřeno */
   html.auth-checking body { visibility: hidden; }
@@ -63,7 +66,7 @@
     /* Kontejner půdorysu */
     .floorplan {
       position: relative;
-      width: 4000;         /* pevná šířka obrázku */
+      width: 4000;         /* pevná šířka obrázku (ponechávám dle tvého kódu) */
       max-width: 500%;     /* nepřesáhne obrazovku */
     }
 
@@ -76,21 +79,19 @@
       pointer-events: none;  /* obrázek nebude blokovat kliky */
     }
 
-   .icon {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  background-color: rgb(0, 14, 124);
-  border-radius: 50%;
-  cursor: pointer;
-  text-align: center;
-  color: white;
-  font-size: 10px;     /* text uvnitř */
-  line-height: 18px;   /* srovnat na výšku */
-  z-index: 3;
-}
-
-
+    .icon {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background-color: rgb(0, 14, 124);
+      border-radius: 50%;
+      cursor: pointer;
+      text-align: center;
+      color: white;
+      font-size: 10px;     /* text uvnitř */
+      line-height: 18px;   /* srovnat na výšku */
+      z-index: 3;
+    }
 
     /* ---- barvy podle typu ---- */
     .icon-gold   { background-color: rgb(67, 57, 1); color: black; }            /* světla */
@@ -103,17 +104,30 @@
     .icon-brown  { background-color: rgb(92, 44, 0); }                /* kávovar */
     /* -------------------------------- */
 
+    /* ✅ Popup připnutý k obrazovce, rozměrové limity a výchozí "schovaný" stav.
+       Neudávám top/left dopředu — dopočítá se skriptem podle ikonky. */
     .popup {
       display: none;
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       background: #fff;
       border: 2px solid #333;
-      padding: 20px;
-      z-index: 10;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      padding: 16px;
+      z-index: 10000;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+      max-width: min(360px, 90vw);
+      max-height: min(80vh, 600px);
+      overflow: auto;
+      border-radius: 12px;
+    }
+
+    /* safe area (notch apod.) — padding se rozumně zvětší */
+    @supports (padding: max(0px)) {
+      .popup {
+        padding-left:  max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-top:   max(16px, env(safe-area-inset-top));
+        padding-bottom:max(16px, env(safe-area-inset-bottom));
+      }
     }
 
     .popup button { margin-top: 10px; padding: 5px 10px; }
@@ -124,7 +138,7 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0,0,0,0.5);
-      z-index: 5;
+      z-index: 9999;
     }
 
     /* ====== ZNAČKOVACÍ MÓD – styly ====== */
@@ -314,9 +328,6 @@
       <div class="icon icon-red" style="top: 61.2%; left: 53.1%;" 
          onclick="openPopup('Rozvadeč WC',
         `<img src='rozvadecwc.png' alt='Rozvaděč 3 - WC' style='max-width:100%; height:auto;'>`, this)">⚡︎</div>
-
-
-
     </div>
   </div>
 
@@ -393,6 +404,38 @@
   </div>
 
   <script>
+    /* ✅ výpočet polohy popupu podle ikonky + „clamping“ do obrazovky */
+    function positionPopup(popupEl, anchorX, anchorY) {
+      const GAP = 12;        // mezera mezi ikonou a popupem
+      const PADDING = 8;     // odstup od okrajů obrazovky
+
+      // zobrazíme "neviditelně", abychom změřili velikost
+      popupEl.style.visibility = 'hidden';
+      popupEl.style.display = 'block';
+
+      const pw = popupEl.offsetWidth;
+      const ph = popupEl.offsetHeight;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      // výchozí poloha: nad ikonou a horizontálně vystředěná
+      let left = Math.round(anchorX - pw / 2);
+      let top  = Math.round(anchorY - ph - GAP);
+
+      // když nahoře není místo, umísti pod ikonu
+      if (top < PADDING) {
+        top = Math.round(anchorY + GAP);
+      }
+
+      // omez do viditelné oblasti (viewportu)
+      left = Math.max(PADDING, Math.min(left, vw - pw - PADDING));
+      top  = Math.max(PADDING, Math.min(top, vh - ph - PADDING));
+
+      popupEl.style.left = left + 'px';
+      popupEl.style.top  = top + 'px';
+      popupEl.style.visibility = 'visible';
+    }
+
     function openPopup(title, content, el) {
       const popup = document.getElementById('popup');
       const overlay = document.getElementById('overlay');
@@ -416,12 +459,38 @@
 
       overlay.style.display = 'block';
       popup.style.display = 'block';
+
+      // 🧠 klíčové: spočti polohu podle skutečné pozice ikonky na obrazovce
+      const r = el ? el.getBoundingClientRect() : { left: window.innerWidth/2, top: window.innerHeight/2, width: 0, height: 0 };
+      const anchorX = r.left + r.width / 2;
+      const anchorY = r.top + r.height / 2;
+
+      positionPopup(popup, anchorX, anchorY);
+
+      // ulož anchor pro přepočty při změně velikosti/otočení
+      popup.dataset.anchorX = String(anchorX);
+      popup.dataset.anchorY = String(anchorY);
     }
 
     function closePopup() {
       document.getElementById('overlay').style.display = 'none';
-      document.getElementById('popup').style.display = 'none';
+      const popup = document.getElementById('popup');
+      popup.style.display = 'none';
+      delete popup.dataset.anchorX;
+      delete popup.dataset.anchorY;
     }
+
+    // přepočet při otočení/resize obrazovky
+    window.addEventListener('resize', () => {
+      const popup = document.getElementById('popup');
+      if (popup.style.display === 'block') {
+        const ax = parseFloat(popup.dataset.anchorX);
+        const ay = parseFloat(popup.dataset.anchorY);
+        if (!isNaN(ax) && !isNaN(ay)) {
+          positionPopup(popup, ax, ay);
+        }
+      }
+    });
   </script>
 
   <!-- ====== ZNAČKOVACÍ MÓD – panel + toggle + skript ====== -->
