@@ -4,7 +4,7 @@ const CACHE = 'bible-v1';
 const ASSETS = [
   './',               // kořen složky (dlouhodobě drží index nebo auto-index)
   './index.html',     // pokud máš index.html (ponech klidně i když máš bible.html)
-  './bible.html',     // pokud se soubor jmenuje bible.html
+  './index.html',     // pokud se soubor jmenuje bible.html
   // obrázky použité v projektu:
   './1vchod.png',
   './3VIP.png',
@@ -43,3 +43,4 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then(res => res || fetch(event.request))
   );
 });
+
