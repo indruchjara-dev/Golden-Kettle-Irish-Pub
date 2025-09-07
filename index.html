@@ -121,33 +121,41 @@
     .icon-brown  { background-color: rgb(92, 44, 0); }                 /* kávovar */
     /* -------------------------------- */
 
-    /* ✅ MINI POPUP – cca 5× menší pomocí scale */
+    /* ===== POPUP – iOS-safe varianta ===== */
+
+    /* Vnější kontejner – jen pozicování, BEZ transformu */
     .popup {
       display: none;
       position: fixed;
+      left: 0; top: 0;     /* finální pozici nastaví JS */
+      z-index: 10000;
+    }
+
+    /* Vnitřek popupu – vizuál + škálování (funguje spolehlivě i na iOS) */
+    .popup-inner {
       background: #fff;
       border: 2px solid #333;
       padding: 12px;
-      z-index: 10000;
       box-shadow: 0 12px 28px rgba(0,0,0,.25);
       max-width: min(320px, 86vw);
       max-height: min(65vh, 520px);
       overflow: auto;
       border-radius: 12px;
-      font-size: 14px;      /* základ – zmenší se transformem */
+      font-size: 14px;
       line-height: 1.35;
 
-      /* 👇 klíč k „5× menšímu“ */
-      --popup-scale: 0.4;          /* 0.2 = 20 % velikosti (≈ 5× menší) */
-      transform-origin: top left;  /* polohujeme od levého horního rohu */
+      /* 👇 měřítko popupu – uprav, jak chceš (0.2 = ~5× menší) */
+      --popup-scale: 0.4;
+      transform-origin: top left;
       transform: scale(var(--popup-scale));
+      will-change: transform;
     }
-    .popup h2 { font-size: 16px; margin: 0 0 6px; }
-    .popup p  { margin: 0; }
-    .popup img { max-width: 100%; height: auto; display: block; }
+    .popup-inner h2 { font-size: 16px; margin: 0 0 6px; }
+    .popup-inner p  { margin: 0; }
+    .popup-inner img { max-width: 100%; height: auto; display: block; }
 
     @supports (padding: max(0px)) {
-      .popup {
+      .popup-inner {
         padding-left:  max(12px, env(safe-area-inset-left));
         padding-right: max(12px, env(safe-area-inset-right));
         padding-top:   max(12px, env(safe-area-inset-top));
@@ -155,7 +163,7 @@
       }
     }
 
-    .popup button { margin-top: 10px; padding: 5px 10px; }
+    .popup-inner button { margin-top: 10px; padding: 5px 10px; }
 
     .overlay {
       display: none;
@@ -358,17 +366,13 @@
       <div class="icon icon-gold" style="top: 67.2%; left: 48.4%;" onclick="openPopup('Vytrýna – doplň popis','Výška: … cm', this)">💡</div>
       <div class="icon icon-gold" style="top: 66.3%; left: 46.7%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
       <div class="icon icon-gold" style="top: 67.8%; left: 45.4%;" onclick="openPopup('Vytrýna – doplň popis','Výška: … cm', this)">💡</div>
-      <div class="icon icon-blue" style="top: 60.9%; left: 31.9%;" onclick="openPopup('Klimatizace – doplň popis','Výška: … cm', this)">K</div>
+      <div class="icon icon-blue" style="top: 60.9%; left: 31.9%;" onclick="openPopup('Klimatizace – doplň popis','Výška: … cm', this)">❄︎</div>
       <div class="icon" style="top: 44.8%; left: 33.0%;" onclick="openPopup('topeni – doplň popis','Výška: … cm', this)">♨️</div>
       <div class="icon" style="top: 48.2%; left: 32.7%;" onclick="openPopup('tv – doplň popis','Výška: … cm', this)">Tv</div>
       <div class="icon icon-gold" style="top: 51.5%; left: 32.7%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
       <div class="icon icon-gray" style="top: 55.0%; left: 32.2%;" onclick="openPopup('Zásuvka – doplň popis','Výška: … cm', this)">Z</div>
 
-
-
-
-
-      <!-- OPRAVA: bez backticků, bezpečné uvozovky -->
+      <!-- Rozvaděč WC – obrázek v popupu -->
       <div class="icon icon-red" style="top: 61.2%; left: 53.1%;"
            onclick="openPopup('Rozvadeč WC', '<img src=&quot;rozvadecwc.png&quot; alt=&quot;Rozvaděč 3 - WC&quot; style=&quot;max-width:100%; height:auto;&quot;>', this)">⚡︎</div>
     </div>
@@ -396,35 +400,34 @@
     <div class="floorplan">
       <img src="7gt.png" alt="Půdorys – Prostor 6">
       <!-- Ikonky v procentech -->
-       <div class="icon icon-red" style="top: 25.4%; left: 52.1%;" onclick="openPopup('Reproduktor – doplň popis','Výška: … cm', this)">R</div>
+       <div class="icon icon-red" style="top: 25.4%; left: 52.1%;" onclick="openPopup('Reproduktor – doplň popis','Výška: … cm', this)">♫</div>
        <div class="icon icon-blue" style="top: 29.7%; left: 50.9%;" onclick="openPopup('Lednice – doplň popis','Výška: … cm', this)">L</div>
        <div class="icon" style="top: 29.2%; left: 52.4%;" onclick="openPopup('Kompresor – doplň popis','Výška: … cm', this)">K</div>
        <div class="icon" style="top: 28.6%; left: 46.7%;" onclick="openPopup('Televize – doplň popis','Výška: … cm', this)">Tv</div>
-       <div class="icon icon-brown" style="top: 30.6%; left: 45.7%;" onclick="openPopup('Kávovar – doplň popis','Výška: … cm', this)">Káv</div>
+       <div class="icon icon-brown" style="top: 30.6%; left: 45.7%;" onclick="openPopup('Kávovar – doplň popis','Výška: … cm', this)">☕︎</div>
        <div class="icon icon-green" style="top: 48.4%; left: 50.0%;" onclick="openPopup('Pokladna – doplň popis','Výška: … cm', this)">V</div>
        <div class="icon icon-gray" style="top: 42.6%; left: 47.9%;" onclick="openPopup('Zásuvka – doplň popis','Výška: … cm', this)">Z</div>
-       <div class="icon icon-blue" style="top: 44.9%; left: 48.6%;" onclick="openPopup('Ledovač – doplň popis','Výška: … cm', this)">ice</div>
+       <div class="icon icon-gray" style="top: 44.9%; left: 48.6%;" onclick="openPopup('Ledovač – doplň popis','Výška: … cm', this)">🧊</div>
        <div class="icon" style="top: 43.0%; left: 51.9%;" onclick="openPopup('Kompresor – doplň popis','Výška: … cm', this)">K</div>
        <div class="icon" style="top: 41.2%; left: 54.9%;" onclick="openPopup('Uzávěr – doplň popis','Výška: … cm', this)">U</div>
        <div class="icon" style="top: 44.8%; left: 55.4%;" onclick="openPopup('Umyvadlo – doplň popis','Výška: … cm', this)">U</div>
-       <div class="icon icon-gold" style="top: 46.5%; left: 53.1%;" onclick="openPopup('Výčep – doplň popis','Výška: … cm', this)">V</div>
+       <div class="icon icon-gold" style="top: 46.5%; left: 53.1%;" onclick="openPopup('Výčep – doplň popis','Výška: … cm', this)">🍺</div>
        <div class="icon icon-red" style="top: 67.1%; left: 60.8%;"
         onclick="openPopup('Rozvadeč GT', '<img src=&quot;rozvadecgt.png&quot; alt=&quot;Rozvaděč 3 - WC&quot; style=&quot;max-width:100%; height:auto;&quot;>', this)">⚡︎</div>
        <div class="icon icon-gray" style="top: 74.5%; left: 56.7%;" onclick="openPopup('Zásuvka – doplň popis','Výška: … cm', this)">Z</div>
        <div class="icon icon-gray" style="top: 86.7%; left: 50.6%;" onclick="openPopup('Zásuvka – doplň popis','Výška: … cm', this)">Z</div>
        <div class="icon icon-gray" style="top: 69.1%; left: 41.1%;" onclick="openPopup('Topení – doplň popis','Výška: … cm', this)">♨️</div>
        <div class="icon icon-gray" style="top: 58.5%; left: 39.9%;" onclick="openPopup('Topení – doplň popis','Výška: … cm', this)">♨️</div>
-       <div class="icon icon-blue" style="top: 78.2%; left: 51.7%;" onclick="openPopup('Klimatizace – doplň popis','Výška: … cm', this)">K</div>
+       <div class="icon icon-blue" style="top: 78.2%; left: 51.7%;" onclick="openPopup('Klimatizace – doplň popis','Výška: … cm', this)">❄︎</div>
        <div class="icon icon-gray" style="top: 61.9%; left: 49.7%;" onclick="openPopup('Detektor kouře – doplň popis','Výška: … cm', this)">DK</div>
-       <div class="icon icon-red" style="top: 71.5%; left: 61.4%;" onclick="openPopup('Reproduktor – doplň popis','Výška: … cm', this)">R</div>
-       <div class="icon icon-gold" style="top: 34.4%; left: 40.0%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">L4</div>
-
-
-
-
-
-
-
+       <div class="icon icon-red" style="top: 71.5%; left: 61.4%;" onclick="openPopup('Reproduktor – doplň popis','Výška: … cm', this)">♫</div>
+       <div class="icon icon-gold" style="top: 34.4%; left: 40.0%;" onclick="openPopup('Žárovka GT1; Typ7','Výška: 40 cm<br><br>Značka: Phillips<br>Příkon: 2.5 W<br>Proud: 15 mA<br>Napětí: 220-240 V ', this)">💡</div>
+       <div class="icon icon-gold" style="top: 63.7%; left: 58.3%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 77.2%; left: 44.7%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 69.3%; left: 45.7%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 60.3%; left: 42.7%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 50.6%; left: 42.9%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-pink" style="top: 82.4%; left: 42.7%;" onclick="openPopup('Kamera – doplň popis','Výška: … cm', this)">📷</div>
     </div>
   </div>
 
@@ -479,44 +482,44 @@
   <!-- Popup a overlay -->
   <div class="overlay" id="overlay" onclick="closePopup()"></div>
   <div class="popup" id="popup">
-    <h2 id="popupTitle"></h2>
-    <p id="popupContent"></p>
-    <button onclick="closePopup()">Zavřít</button>
+    <div class="popup-inner">
+      <h2 id="popupTitle"></h2>
+      <p id="popupContent"></p>
+      <button onclick="closePopup()">Zavřít</button>
+    </div>
   </div>
 
   <script>
-    function getPopupScale(el) {
-      const cs = window.getComputedStyle(el);
-      const raw = (cs.getPropertyValue('--popup-scale') || '1').trim();
-      const s = parseFloat(raw);
-      return (!isNaN(s) && s > 0) ? s : 1;
-    }
-
-    /* výpočet polohy popupu podle ikonky + „clamping“ do obrazovky (se scale) */
+    /* výpočet polohy popupu podle ikonky + „clamping“ do obrazovky
+       – měříme skutečnou VIZUÁLNÍ velikost přes .popup-inner.getBoundingClientRect()
+       (funguje správně i s transform: scale na iOS) */
     function positionPopup(popupEl, anchorX, anchorY) {
       const GAP = 12;        // mezera mezi ikonou a popupem
       const PADDING = 8;     // odstup od okrajů obrazovky
 
-      // zobrazíme "neviditelně", abychom změřili velikost
+      // Dočasně zobraz na (0,0), ať lze změřit
       popupEl.style.visibility = 'hidden';
       popupEl.style.display = 'block';
+      popupEl.style.left = '0px';
+      popupEl.style.top  = '0px';
 
-      const scale = getPopupScale(popupEl);
-      const pw = popupEl.offsetWidth * scale;   // šířka po transformaci
-      const ph = popupEl.offsetHeight * scale;  // výška po transformaci
+      const inner = popupEl.querySelector('.popup-inner') || popupEl;
+      const r = inner.getBoundingClientRect();   // rozměry po scale
+      const pw = r.width;
+      const ph = r.height;
+
       const vw = window.innerWidth;
       const vh = window.innerHeight;
 
-      // výchozí poloha: nad ikonou a horizontálně vystředěná
+      // výchozí poloha: nad ikonou a centrovaně
       let left = Math.round(anchorX - pw / 2);
       let top  = Math.round(anchorY - ph - GAP);
 
-      // když nahoře není místo, umísti pod ikonu
       if (top < PADDING) {
-        top = Math.round(anchorY + GAP);
+        top = Math.round(anchorY + GAP); // když nahoře není místo, dej pod
       }
 
-      // omez do viditelné oblasti (viewportu)
+      // omez do viewportu
       left = Math.max(PADDING, Math.min(left, vw - pw - PADDING));
       top  = Math.max(PADDING, Math.min(top, vh - ph - PADDING));
 
@@ -526,8 +529,9 @@
     }
 
     function openPopup(title, content, el) {
-      const popup = document.getElementById('popup');
+      const popup   = document.getElementById('popup');
       const overlay = document.getElementById('overlay');
+      const inner   = popup.querySelector('.popup-inner');
       const titleEl = document.getElementById('popupTitle');
       const contentEl = document.getElementById('popupContent');
 
@@ -541,17 +545,19 @@
         color = cs.backgroundColor || color;
       }
 
-      popup.style.borderColor = color;
-      popup.style.boxShadow = `0 0 12px 0 ${color}`;
-      titleEl.style.color = color;
+      // barvy aplikuj na .popup-inner (ne na .popup)
+      inner.style.borderColor = color;
+      inner.style.boxShadow   = `0 0 12px 0 ${color}`;
+      titleEl.style.color     = color;
 
       overlay.style.display = 'block';
       popup.style.display = 'block';
 
       // spočítat polohu podle skutečné pozice ikonky na obrazovce
-      const r = el ? el.getBoundingClientRect() : { left: window.innerWidth/2, top: window.innerHeight/2, width: 0, height: 0 };
+      const r = el ? el.getBoundingClientRect()
+                   : { left: window.innerWidth/2, top: window.innerHeight/2, width: 0, height: 0 };
       const anchorX = r.left + r.width / 2;
-      const anchorY = r.top + r.height / 2;
+      const anchorY = r.top  + r.height / 2;
 
       positionPopup(popup, anchorX, anchorY);
 
