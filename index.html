@@ -97,9 +97,12 @@
   font-size: calc(var(--icon) * 0.62);
 }
 
-/* Extra pojistka pro úplně úzké telefony */
-@media (max-width: 360px) {
-  .icon { --icon: 11px; }
+/* 30% velikosti ikon na mobilech */
+@media (max-width: 600px) {
+  .icon {
+    transform: scale(0.3);
+    transform-origin: center center; /* zmenšit kolem středu, pozice zůstane */
+  }
 }
 
 
