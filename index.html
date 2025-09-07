@@ -76,27 +76,32 @@
       pointer-events: none;  /* obrázek nebude blokovat kliky */
     }
 
-    .icon {
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      background-color: rgb(0, 14, 124);
-      border-radius: 50%;
-      cursor: pointer;
-      text-align: center;
-      color: white;
-      font-size: 10px;
-      line-height: 18px;
-      z-index: 3;
-    }
+    /* NAHRAĎ tímto celou svou .icon (i mobilní media queries klidně smaž) */
+.icon {
+  position: absolute;
+  /* „gumová“ velikost: min 10 px, ideál ~2.4vw, max 18 px */
+  --icon: clamp(10px, 2.4vw, 18px);
 
-    /* mobilní zmenšení ikon */
-    @media (max-width: 480px) {
-      .icon { width: 14px; height: 14px; line-height: 14px; font-size: 9px; }
-    }
-    @media (max-width: 360px) {
-      .icon { width: 12px; height: 12px; line-height: 12px; font-size: 8px; }
-    }
+  width: var(--icon);
+  height: var(--icon);
+  line-height: var(--icon);
+  border-radius: 50%;
+
+  background-color: rgb(0, 14, 124);
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  z-index: 3;
+
+  /* text uvnitř ~62 % z průměru */
+  font-size: calc(var(--icon) * 0.62);
+}
+
+/* Extra pojistka pro úplně úzké telefony */
+@media (max-width: 360px) {
+  .icon { --icon: 11px; }
+}
+
 
     /* ---- barvy podle typu ---- */
     .icon-gold   { background-color: rgb(67, 57, 1); color: black; }  /* světla */
