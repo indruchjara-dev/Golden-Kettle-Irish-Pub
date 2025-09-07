@@ -9,7 +9,7 @@
 
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-<h1 style="color:crimson">Hello z GitHub Pages</h1>
+
     /* Nadpisy bez mezer */
     h2 { margin: 0; }
 
@@ -37,20 +37,32 @@
     }
 
    .icon {
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  background-color: rgb(0, 14, 124);
-  border-radius: 50%;
-  cursor: pointer;
-  text-align: center;
-  color: white;
-  font-size: 18px;   /* větší text uvnitř */
-  line-height: 32px; /* zarovnání textu na střed */
-  z-index: 3;
+      position: absolute;
+      /* velikost ikon: min 18px, ideál ~3.2vmin, max 34px */
+      width: clamp(18px, 3.2vmin, 34px);
+      height: clamp(18px, 3.2vmin, 34px);
+      background-color: rgb(0, 14, 124);
+      border-radius: 50%;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* text uvnitř také škálovatelný */
+      font-size: clamp(11px, 1.6vmin, 18px);
+      line-height: 1;
+      z-index: 3;
+      user-select: none;
 }
 
-
+ /* jemné zvětšení na velmi malých mobilech */
+    @media (max-width: 420px) {
+      .icon {
+        width: clamp(18px, 4.2vmin, 36px);
+        height: clamp(18px, 4.2vmin, 36px);
+        font-size: clamp(11px, 2vmin, 18px);
+      }
+}
     /* ---- barvy podle typu ---- */
     .icon-gold   { background-color: rgb(67, 57, 1); color: black; }            /* světla */
     .icon-blue   { background-color: deepskyblue; }                   /* klima, chlaďáky, led */
@@ -62,6 +74,7 @@
     .icon-brown  { background-color: rgb(92, 44, 0); }                /* kávovar */
     /* -------------------------------- */
 
+     /* --- POPUP upravený pro mobil --- */
     .popup {
       display: none;
       position: fixed;
@@ -70,12 +83,18 @@
       transform: translate(-50%, -50%);
       background: #fff;
       border: 2px solid #333;
-      padding: 20px;
+      padding: 16px;
       z-index: 10;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
+
+      /* mobilní limity */
+      max-width: min(92vw, 720px);
+      max-height: 80vh;
+      overflow: auto;
+      border-radius: 10px;
     }
 
-    .popup button { margin-top: 10px; padding: 5px 10px; }
+    .popup button { margin-top: 10px; padding: 6px 12px; }
 
     .overlay {
       display: none;
@@ -525,5 +544,3 @@
   </script>
 </body>
 </html>
-
-
