@@ -7,8 +7,20 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0a7a28">
 
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+
+    /* zamknutí posouvání pozadí při otevřeném popupu */
+    body.no-scroll {
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* jistota překrytí i na mobilech */
+    .overlay { z-index: 10000; }
+    .popup   { z-index: 10001; }
 
     /* Nadpisy bez mezer */
     h2 { margin: 0; }
