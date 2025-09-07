@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Bible podniku – ukázka</title>
+  <!-- PWA: manifest + barva UI -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a7a28">
+
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+
+    /* Nadpisy bez mezer */
+    h2 { margin: 0; }
+
+    /* Wrapper pro centrování obrázku */
+    .floorplan-wrapper {
+      display: flex;
+      justify-content: center; /* horizontální centrování */
+      margin-bottom: 10px;     /* malá mezera pod obrázkem */
+    }
+
+    /* Kontejner půdorysu */
+    .floorplan {
+      position: relative;
+      width: 4000;         /* pevná šířka obrázku */
+      max-width: 500%;     /* nepřesáhne obrazovku */
+    }
+
+    .floorplan img {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0;
+      padding: 0;
+      pointer-events: none;  /* obrázek nebude blokovat kliky */
+    }
+
+   .icon {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background-color: rgb(0, 14, 124);
+  border-radius: 50%;
+  cursor: pointer;
+  text-align: center;
+  color: white;
+  font-size: 18px;   /* větší text uvnitř */
+  line-height: 32px; /* zarovnání textu na střed */
+  z-index: 3;
+}
+
+
+    /* ---- barvy podle typu ---- */
+    .icon-gold   { background-color: rgb(67, 57, 1); color: black; }            /* světla */
+    .icon-blue   { background-color: deepskyblue; }                   /* klima, chlaďáky, led */
+    .icon-gray   { background-color: rgb(65, 67, 67); }               /* zásuvky, kompresor */
+    .icon-red    { background-color: rgb(255, 0, 0); }                /* repráky, alarmy */
+    .icon-green  { background-color: rgb(0, 98, 23); }                /* vypínače, pokladna */
+    .icon-pink   { background-color: rgb(150, 1, 120); }              /* kamera */
+    .icon-orange { background-color: rgb(244, 118, 0); }              /* topení, výčep */
+    .icon-brown  { background-color: rgb(92, 44, 0); }                /* kávovar */
+    /* -------------------------------- */
+
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border: 2px solid #333;
+      padding: 20px;
+      z-index: 10;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .popup button { margin-top: 10px; padding: 5px 10px; }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 5;
+    }
+
+    /* ====== ZNAČKOVACÍ MÓD – styly ====== */
+    .marker-panel {
+      position: fixed;
+      right: 16px;
+      bottom: 64px; /* necháme místo pro toggle tlačítko */
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.15);
+      z-index: 9999;
+      text-align: left;
+      font-size: 14px;
+      display: none; /* defaultně skrytý – zobrazí se až při zapnutí módu */
+    }
+    .marker-panel label { display: block; margin-bottom: 6px; }
+    .marker-panel small { color: #666; }
+
+    .marker-ghost {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      border: 2px dashed #333;
+      background: rgba(255,255,255,.5);
+      z-index: 4;
+    }
+
+    .copy-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 120px;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .2s;
+      z-index: 10000;
+    }
+    .copy-toast.show { opacity: 1; }
+
+    /* malé plovoucí tlačítko pro zapnutí/vypnutí značkovacího módu */
+    .marker-toggle {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 10000;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    }
+    .marker-toggle.on { background: #0a7a28; }
+    /* ====== /ZNAČKOVACÍ MÓD ====== */
+  </style>
+</head>
+<body>
+  <h1>Golden Kettle Irish Pub – Elektroinstalace</h1>
+
+  <!-- 1) vchod -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="1vchod.png" alt="Půdorys – Prostor 1">
+      <!-- Ikonky v procentech -->
+      <div class="icon icon-green" style="top: 58%; left: 49.5%;" onclick="openPopup('Vypínač Vchod','Výška: 80 cm<br>Aktivuje: Automatické dveře', this)">V</div>
+      <div class="icon" style="top: 55.1%; left: 54.7%;" onclick="openPopup('Automatické dveře','Je aktivován s: Vypínač Vchod', this)">D</div>
+      <div class="icon icon-blue" style="top: 60%; left: 54.7%;" onclick="openPopup('Klimatizace Vchod','Výška: 220 cm', this)">❄︎</div>
+      <div class="icon icon-gold" style="top: 71%; left: 53.5%;" onclick="openPopup('Žárovka Vchod1; Typ 4','Výška: 240 cm<br><br>Značka: EMOS<br>Příkon: 2.2 W<br>Napětí: 230 V<br>Proud: 25 mA<br>Tvar: svíčková', this)">💡</div>
+      <div class="icon icon-gold" style="top: 70.5%; left: 50%;" onclick="openPopup('Žárovka Vchod2; Typ 4','Výška: 240 cm<br><br>Značka: EMOS<br>Příkon: 2.2 W<br>Napětí: 230 V<br>Proud: 25 mA<br>Tvar: svíčková', this)">💡</div>
+    </div>
+  </div>
+
+  <!-- 2) VIP -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="3VIP.png" alt="Půdorys místnosti">
+      <!-- Ikonky v procentech -->
+      <div class="icon icon-gray" style="top: 35%; left: 35%;" onclick="openPopup('Zásuvka VIP','Výška: 5 cm', this)">Z</div>
+      <div class="icon icon-red"  style="top: 28%; left: 36%;" onclick="openPopup('Reproduktor VIP','Výška: 140 cm', this)">♫</div>
+      <div class="icon icon-red"  style="top: 32.5%; left: 59%;" onclick="openPopup('Reproduktor VIP','Výška: 140 cm', this)">♫</div>
+      <div class="icon icon-green" style="top: 72%; left: 34%;" onclick="openPopup('Vypínač VIP','Výška: 50 cm<br>Aktivuje: Žárovka VIP4', this)">V</div>
+      <div class="icon icon-green" style="top: 68%; left: 52%;" onclick="openPopup('Vypínač VIP 2','Výška: 150 cm<br>Aktivuje: Dekorativní osvětlení obrazu VIP', this)">V</div>
+      <div class="icon icon-gold"  style="top: 29%; left: 40%;" onclick="openPopup('Žárovka VIP1; Typ 4','Výška: 150 cm<br><br>Značka: EMOS<br>Příkon: 2.2 W<br>Napětí: 230 V<br>Proud: 25 mA<br>Tvar: svíčková', this)">💡</div>
+      <div class="icon icon-gold"  style="top: 32%; left: 55%;" onclick="openPopup('Žárovka VIP2; Typ 4','Výška: 150 cm<br><br>Značka: EMOS<br>Příkon: 2.2 W<br>Napětí: 230 V<br>Proud: 25 mA<br>Tvar: svíčková', this)">💡</div>
+      <div class="icon icon-gold"  style="top: 70%; left: 36%;" onclick="openPopup('Žárovka VIP3; Typ 4','Výška: 300 cm<br><br>Značka: EMOS<br>Příkon: 2.2 W<br>Napětí: 230 V<br>Proud: 25 mA<br>Tvar: svíčková', this)">💡</div>
+      <div class="icon icon-gold"  style="top: 58%; left: 28%;" onclick="openPopup('Žárovka VIP4; Typ 4','Výška: 300 cm<br><br>Značka: EMOS<br>Příkon: 2.2 W<br>Napětí: 230 V<br>Proud: 25 mA<br>Tvar: svíčková<br><br>Je aktivována s: Vypínač VIP', this)">💡</div>
+      <div class="icon icon-gold"  style="top: 63.5%; left: 53%;" onclick="openPopup('Žárovka VIP5; Typ 6','Výška: 250 cm<br><br>Značka: V-TAC<br>Příkon: 10 W<br>Napětí: 220-240 V<br>Proud: 45 mA', this)">💡</div>
+      <div class="icon icon-gold"  style="top: 68%; left: 54%;" onclick="openPopup('Dekorativní osvětlení obrazu VIP; Typ LED','Výška: xxx cm', this)">💡</div>
+      <div class="icon"           style="top: 73%; left: 38%;" onclick="openPopup('Zvonek VIP','Výška: 230 cm', this)">zv</div>
+      <div class="icon icon-pink" style="top: 73%; left: 40%;" onclick="openPopup('Kamera VIP','Výška: 260 cm', this)">📷</div>
+    </div>
+  </div>
+
+  <!-- 2) Tankárna -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="2VIP.png" alt="Půdorys – Nová místnost">
+      <!-- Ikonky v procentech -->
+      <div class="icon icon-blue" style="top: 38%; left: 53.5%;" onclick="openPopup('Klimatizace Tankárna','Výška: 180 cm', this)">❄︎</div>
+      <div class="icon"           style="top: 38%; left: 58%;"   onclick="openPopup('Průtokový měřič Tankárna','Výška: 160 cm', this)">PM</div>
+      <div class="icon icon-green"style="top: 42.8%; left: 55%;" onclick="openPopup('Vypínač Tankárna','Výška: 160 cm<br>Aktivuje: Žárovka VIP4', this)">V</div>
+      <div class="icon icon-gray" style="top: 43%; left: 58%;"   onclick="openPopup('Zásuvka Tankárna','Výška: 160 cm', this)">Z</div>
+      <div class="icon"           style="top: 30%; left: 50%;"   onclick="openPopup('3x Výčepní zařízení Tankárna','Výška: 160 cm', this)">VZ</div>
+      <div class="icon"           style="top: 35%; left: 40%;"   onclick="openPopup('6x Výčepní tank Tankárna','', this)">🍻</div>
+    </div>
+  </div>
+
+  <!-- 4) střed -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="4stred.png" alt="Půdorys – Prostor 3">
+      <!-- Ikonky v procentech -->
+      <div class="icon icon-gray"  style="top: 35%; left: 42%;"   onclick="openPopup('Zásuvka, střední bar1','Počet portů: x', this)">Z</div>
+      <div class="icon icon-gray"  style="top: 50%; left: 63.5%;" onclick="openPopup('Zásuvka, střední bar2','Počet portů: x', this)">Z</div>
+      <div class="icon icon-red"   style="top: 80%; left: 40%;"   onclick="openPopup('Reproduktor, střední bar1','', this)">♫</div>
+      <div class="icon icon-red"   style="top: 70%; left: 40.5%;" onclick="openPopup('Reproduktor, střední bar2','', this)">♫</div>
+      <div class="icon icon-red"   style="top: 39%; left: 40.5%;" onclick="openPopup('Reproduktor, střední bar3','', this)">♫</div>
+      <div class="icon icon-blue"  style="top: 26%; left: 42%;"   onclick="openPopup('Lednice, střední bar1','', this)">L</div>
+      <div class="icon icon-blue"  style="top: 62%; left: 37%;"   onclick="openPopup('Lednice, střední bar2','', this)">L</div>
+      <div class="icon icon-blue"  style="top: 61%; left: 31%;"   onclick="openPopup('Lednice, střední bar3','', this)">L</div>
+      <div class="icon icon-blue"  style="top: 50%; left: 31%;"   onclick="openPopup('Lednice, střední bar4','', this)">L</div>
+      <div class="icon icon-gray"  style="top: 45%; left: 31%;"   onclick="openPopup('Kompresor, střední bar1','', this)">🗜</div>
+      <div class="icon icon-gray"  style="top: 48%; left: 37%;"   onclick="openPopup('Kompresor, střední bar2','', this)">🗜</div>
+      <div class="icon icon-green" style="top: 83.8%; left: 39%;" onclick="openPopup('Vypínač, střední bar1','', this)">V</div>
+      <div class="icon icon-green" style="top: 41%; left: 31%;"   onclick="openPopup('Vypínač, střední bar2','', this)">V</div>
+      <div class="icon"            style="top: 79%; left: 30.5%;" onclick="openPopup('Umyvadlo, střední bar1','', this)">💧</div>
+      <div class="icon"            style="top: 52%; left: 37%;"   onclick="openPopup('Umyvadlo, střední bar2','', this)">💧</div>
+      <div class="icon icon-pink"  style="top: 29%; left: 31%;"   onclick="openPopup('Kamera, střední bar','', this)">📷</div>
+      <div class="icon"            style="top: 82%; left: 55%;"   onclick="openPopup('Televize, střední bar','', this)">Tv</div>
+      <div class="icon icon-gray"style="top: 35%; left: 63.5%;" onclick="openPopup('Topení, střední bar','', this)">♨️</div>
+      <div class="icon icon-gray"   style="top: 50%; left: 50%;"   onclick="openPopup('Detektor kouře, střední bar','', this)">🔥</div>
+      <div class="icon icon-blue"  style="top: 65%; left: 63%;"   onclick="openPopup('Klimatizace, střední bar','', this)">❄︎</div>
+      <div class="icon"            style="top: 70%; left: 30.8%;" onclick="openPopup('Myčka nádobí, střední bar','', this)">M</div>
+      <div class="icon icon-green" style="top: 35%; left: 37.2%;" onclick="openPopup('Pokladna, střední bar','', this)">$</div>
+      <div class="icon icon-gray"  style="top: 67.7%; left: 37%;" onclick="openPopup('Ledovač, střední bar','', this)">🧊</div>
+      <div class="icon icon-brown" style="top: 33.8%; left: 31.1%;"onclick="openPopup('Kávovar,  střední bar','Výška: … cm', this)">☕︎</div>
+      <div class="icon"            style="top: 57.1%; left: 37%;" onclick="openPopup('PostMix,  střední bar','Výška: … cm', this)">PM</div>
+      <div class="icon icon-orange" style="top: 41.6%; left: 37.1%;" onclick="openPopup('Výčep, střední bar','Výška: … cm', this)">🍺</div>
+      <div class="icon icon-gold" style="top: 41.9%; left: 63.5%;" onclick="openPopup('Světlo, střední bar2; Typ 4','Výška: 190 cm<br><br>Značka: EMOS<br>Příkon: 2.2 W<br>Napětí: 230 V<br>Proud: 25 mA<br>Tvar: svíčková', this)">💡</div>
+      <div class="icon icon-gold" style="top: 81.1%; left: 62.4%;" onclick="openPopup('Světlo, střední bar1; Typ 4','Výška: 190 cm<br><br>Značka: EMOS<br>Příkon: 2.2 W<br>Napětí: 230 V<br>Proud: 25 mA<br>Tvar: svíčková', this)">💡</div>
+    </div>
+  </div>
+
+  <!-- další místnosti ... (beze změn) -->
+  <!-- 5 wc-->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="5wc.png" alt="Půdorys – Prostor 4">
+      <!-- Ikonky v procentech -->
+       <div class="icon icon-gray" style="top: 33.6%; left: 56.2%;" onclick="openPopup('Záchod WC1','Výška: … cm', this)">🚽</div>
+       <div class="icon" style="top: 34.3%; left: 52.4%;" onclick="openPopup('Umyvadlo WC1','Výška: … cm', this)">💧</div>
+       <div class="icon icon-gold" style="top: 37.2%; left: 55.6%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-green" style="top: 40.1%; left: 52.1%;" onclick="openPopup('Vypínač – doplň popis','Výška: … cm', this)">V</div>
+       <div class="icon" style="top: 32.9%; left: 59.4%;" onclick="openPopup('sprcha – doplň popis','Výška: … cm', this)">X</div>
+       <div class="icon icon-gray" style="top: 33.1%; left: 63.7%;" onclick="openPopup('Záchod WC2','Výška: … cm', this)">🚽</div>
+       <div class="icon icon-gray" style="top: 32.4%; left: 67.4%;" onclick="openPopup('Záchod WC3','Výška: … cm', this)">🚽</div>
+       <div class="icon icon-gold" style="top: 37.2%; left: 64.0%;" onclick="openPopup('2x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 36.8%; left: 67.8%;" onclick="openPopup('2x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 46.5%; left: 60.9%;" onclick="openPopup('2x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 45.6%; left: 66.2%;" onclick="openPopup('2x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gray" style="top: 49.1%; left: 63.4%;" onclick="openPopup('2x Záchod WC4,5','Výška: … cm', this)">🚽</div>
+       <div class="icon icon-gray" style="top: 47.9%; left: 68.0%;" onclick="openPopup('2x Záchod WC6,7','Výška: … cm', this)">🚽</div>
+       <div class="icon icon-gold" style="top: 45.1%; left: 53.7%;" onclick="openPopup('2x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gray" style="top: 47.3%; left: 56.3%;" onclick="openPopup('Zásuvka – doplň popis','Výška: … cm', this)">Z</div>
+       <div class="icon" style="top: 48.6%; left: 52.7%;" onclick="openPopup('Umyvadlo WC2','Výška: … cm', this)">💧</div>
+       <div class="icon icon-gold" style="top: 54.9%; left: 53.7%;" onclick="openPopup('2x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 58.8%; left: 61.1%;" onclick="openPopup('4x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gray" style="top: 63.9%; left: 62.1%;" onclick="openPopup('Zásuvka – doplň popis','Výška: … cm', this)">Z</div>
+       <div class="icon" style="top: 62.1%; left: 58.6%;" onclick="openPopup('Umyvadlo WC3','Výška: … cm', this)">💧</div>
+       <div class="icon" style="top: 64.1%; left: 60.2%;" onclick="openPopup('susak – doplň popis','Výška: … cm', this)">X</div>
+       <div class="icon icon-gold" style="top: 54.4%; left: 66.6%;" onclick="openPopup('2x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gold" style="top: 61.2%; left: 66.7%;" onclick="openPopup('2x Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-gray" style="top: 54.3%; left: 68.7%;" onclick="openPopup('Záchod WC8','Výška: … cm', this)">🚽</div>
+       <div class="icon icon-gray" style="top: 60.7%; left: 68.6%;" onclick="openPopup('Záchod WC9','Výška: … cm', this)">🚽</div>
+       <div class="icon icon-gold" style="top: 64.6%; left: 54.5%;" onclick="openPopup('Světlo – doplň popis','Výška: … cm', this)">💡</div>
+       <div class="icon icon-green" style="top: 61.0%; left: 55.2%;" onclick="openPopup('Vypínač – doplň popis','Výška: … cm', this)">V</div>
+      <div class="icon icon-red" style="top: 61.2%; left: 53.1%;" 
+         onclick="openPopup('Rozvadeč WC',
+        `<img src='rozvadecwc.png' alt='Rozvaděč 3 - WC' style='max-width:100%; height:auto;'>`, this)">⚡︎</div>
+
+
+
+    </div>
+  </div>
+
+  <!-- 6 schody gt -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="6schodygt.png" alt="Půdorys – Prostor 5">
+      <!-- Ikonky v procentech -->
+    </div>
+  </div>
+
+  <!-- 7gt -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="7gt.png" alt="Půdorys – Prostor 6">
+      <!-- Ikonky v procentech -->
+    </div>
+  </div>
+
+  <!-- 8 dolni bar -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="8dolni.png" alt="Půdorys – Prostor 7">
+      <!-- Ikonky v procentech -->
+    </div>
+  </div>
+
+  <!-- 9 velky sal -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="9velky.png" alt="Půdorys – Prostor 8">
+      <!-- Ikonky v procentech -->
+    </div>
+  </div>
+
+  <!-- 10 pasaz -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="10pasaz.png" alt="Půdorys – Prostor 9">
+      <!-- Ikonky v procentech -->
+    </div>
+  </div>
+
+  <!-- 11 maly sal -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="11maly.png" alt="Půdorys – Prostor 10">
+      <!-- Ikonky v procentech -->
+    </div>
+  </div>
+
+  <!-- 12 mycka -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="12mycka.png" alt="Půdorys – Prostor 11">
+      <!-- Ikonky v procentech -->
+    </div>
+  </div>
+
+  <!-- 13 kuchyn -->
+  <div class="floorplan-wrapper">
+    <div class="floorplan">
+      <img src="13kuchyn.png" alt="Půdorys – Prostor 12">
+      <!-- Ikonky v procentech -->
+    </div>
+  </div>
+
+  <!-- Popup a overlay -->
+  <div class="overlay" id="overlay" onclick="closePopup()"></div>
+  <div class="popup" id="popup">
+    <h2 id="popupTitle"></h2>
+    <p id="popupContent"></p>
+    <button onclick="closePopup()">Zavřít</button>
+  </div>
+
+  <script>
+    function openPopup(title, content, el) {
+      const popup = document.getElementById('popup');
+      const overlay = document.getElementById('overlay');
+      const titleEl = document.getElementById('popupTitle');
+      const contentEl = document.getElementById('popupContent');
+
+      titleEl.innerHTML = title;
+      contentEl.innerHTML = content;
+
+      // převzít barvu ikonky (background-color)
+      let color = '#333';
+      if (el) {
+        const cs = window.getComputedStyle(el);
+        color = cs.backgroundColor || color;
+      }
+
+      // použít barvu na rámeček, stín a nadpis
+      popup.style.borderColor = color;
+      popup.style.boxShadow = `0 0 12px 0 ${color}`;
+      titleEl.style.color = color;
+
+      overlay.style.display = 'block';
+      popup.style.display = 'block';
+    }
+
+    function closePopup() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('popup').style.display = 'none';
+    }
+  </script>
+
+  <!-- ====== ZNAČKOVACÍ MÓD – panel + toggle + skript ====== -->
+  <!-- malé tlačítko pro zapnutí/vypnutí módu -->
+  <button class="marker-toggle" id="markerToggle" type="button">Značit</button>
+
+  <div class="marker-panel" id="markerPanel">
+    <label><input type="checkbox" id="markMode"> Značkovací mód</label>
+    <label>
+      Typ ikony:
+      <select id="iconType">
+        <option value="light" selected>Světlo (icon-gold, L4)</option>
+        <option value="ac">Klimatizace (icon-blue, K)</option>
+        <option value="socket">Zásuvka (icon-gray, Z)</option>
+        <option value="switch">Vypínač (icon-green, V)</option>
+        <option value="speaker">Reproduktor (icon-red, R)</option>
+        <option value="bell">Zvonek (icon-red, zv)</option>
+        <option value="camera">Kamera (icon-pink, K)</option>
+        <option value="kafe">Kávovar (icon-brown, Káv)</option>
+        <option value="custom">Vlastní (icon, text)</option>
+      </select>
+    </label>
+    <label id="customTextWrap" style="display:none; margin-top:6px;">
+      Text v ikoně: <input type="text" id="iconText" value="X" style="width:80px;">
+    </label>
+    <small>Klikni do obrázku → snippet se zkopíruje do schránky.</small>
+  </div>
+
+  <div class="copy-toast" id="copyToast">Zkopírováno do schránky ✂️</div>
+
+  <script>
+    (function(){
+      const markMode = document.getElementById('markMode');
+      const iconTypeSel = document.getElementById('iconType');
+      const iconTextInput = document.getElementById('iconText');
+      const customWrap = document.getElementById('customTextWrap');
+      const toast = document.getElementById('copyToast');
+      const panel = document.getElementById('markerPanel');
+      const toggleBtn = document.getElementById('markerToggle');
+
+      // přepínání viditelnosti panelu a tlačítka
+      function syncUI(){
+        if (markMode.checked) {
+          panel.style.display = 'block';
+          toggleBtn.classList.add('on');
+          toggleBtn.textContent = 'Značit (zapnuto)';
+        } else {
+          panel.style.display = 'none';
+          toggleBtn.classList.remove('on');
+          toggleBtn.textContent = 'Značit';
+        }
+      }
+      // toggle tlačítko zapíná/vypíná mód
+      toggleBtn.addEventListener('click', () => {
+        markMode.checked = !markMode.checked;
+        syncUI();
+      });
+      // přímá změna checkboxu (kdybys klikal přímo v panelu)
+      markMode.addEventListener('change', syncUI);
+      // start: mód vypnutý, panel skrytý
+      markMode.checked = false;
+      syncUI();
+
+      iconTypeSel.addEventListener('change', () => {
+        customWrap.style.display = iconTypeSel.value === 'custom' ? 'block' : 'none';
+      });
+
+      const TYPE_MAP = {
+        light:  { cls: 'icon icon-gold',   text: 'L4',  title: 'Světlo' },
+        ac:     { cls: 'icon icon-blue',   text: 'K',   title: 'Klimatizace' },
+        socket: { cls: 'icon icon-gray',   text: 'Z',   title: 'Zásuvka' },
+        switch: { cls: 'icon icon-green',  text: 'V',   title: 'Vypínač' },
+        speaker:{ cls: 'icon icon-red',    text: 'R',   title: 'Reproduktor' },
+        bell:   { cls: 'icon icon-red',    text: 'zv',  title: 'Zvonek' },
+        camera: { cls: 'icon icon-pink',   text: 'K',   title: 'Kamera' },
+        kafe:   { cls: 'icon icon-brown',  text: 'Káv', title: 'Kávovar' },
+        custom: { cls: 'icon',             text: 'X',   title: 'Objekt' },
+      };
+
+      document.querySelectorAll('.floorplan').forEach(fp => {
+        const img = fp.querySelector('img');
+        if (!img) return;
+
+        fp.addEventListener('click', (e) => {
+          if (!markMode.checked) return;        // když není mód zapnutý, nic se neděje
+
+          const rect = fp.getBoundingClientRect();
+          const xPx = e.clientX - rect.left;
+          const yPx = e.clientY - rect.top;
+          const xPct = (xPx / rect.width) * 100;
+          const yPct = (yPx / rect.height) * 100;
+
+          const typeKey = iconTypeSel.value;
+          const conf = TYPE_MAP[typeKey] || TYPE_MAP.custom;
+
+          const iconText = (typeKey === 'custom' ? (iconTextInput.value || 'X') : conf.text);
+          const title = conf.title + ' – doplň popis';
+          const content = 'Výška: … cm';
+
+          const snippet =
+`<div class="${conf.cls}" style="top: ${yPct.toFixed(1)}%; left: ${xPct.toFixed(1)}%;" onclick="openPopup('${title}','${content}', this)">${iconText}</div>`;
+
+          // zkopírovat snippet do schránky
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(snippet).then(showToast, showToast);
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = snippet;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch(e){}
+            document.body.removeChild(ta);
+            showToast();
+          }
+
+          // ghost náhled kliknutého místa
+          const ghost = document.createElement('div');
+          ghost.className = 'marker-ghost';
+          ghost.style.top = yPct + '%';
+          ghost.style.left = xPct + '%';
+          fp.appendChild(ghost);
+          setTimeout(() => ghost.remove(), 900);
+        }, false);
+      });
+
+      function showToast(){
+        toast.classList.add('show');
+        setTimeout(()=>toast.classList.remove('show'), 900);
+      }
+    })();
+  </script>
+  <!-- ====== /ZNAČKOVACÍ MÓD ====== -->
+
+  <!-- PWA: registrace service workeru -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .catch(err => console.error('SW registrace selhala:', err));
+      });
+    }
+  </script>
+</body>
+</html>
