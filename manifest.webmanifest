@@ -1,9 +1,10 @@
 {
   "name": "Bible podniku",
   "short_name": "Bible",
-  "start_url": "./bible.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0a7a28"
 }
+
