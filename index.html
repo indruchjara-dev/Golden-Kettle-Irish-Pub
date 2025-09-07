@@ -6,6 +6,46 @@
   <!-- PWA: manifest + barva UI -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0a7a28">
+<style>
+  /* schovej obsah, dokud není ověřeno */
+  html.auth-checking body { visibility: hidden; }
+  html.auth-ok body { visibility: visible; }
+</style>
+<script>
+  (function () {
+    // 1) SEM vlož SHA-256 hash tvého hesla (viz krok níže)
+    const PASS_HASH_HEX = "3c4ef966f728d7c0542941c369fbcdd089f8d7f7837b6d42dc2cbd6adaf68158"; // příklad pro "secret123"
+
+    // pomocná funkce: text -> SHA-256 hex
+    async function sha256Hex(text) {
+      const enc = new TextEncoder().encode(text);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      const bytes = Array.from(new Uint8Array(buf));
+      return bytes.map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    // spustit hned
+    document.documentElement.classList.add("auth-checking");
+    window.addEventListener("DOMContentLoaded", async () => {
+      // jednoduché dialogové okno s heslem
+      const pwd = prompt("Zadej heslo:");
+      if (pwd == null) { location.href = "about:blank"; return; }
+      try {
+        const hex = await sha256Hex(pwd);
+        if (hex === PASS_HASH_HEX) {
+          document.documentElement.classList.remove("auth-checking");
+          document.documentElement.classList.add("auth-ok");
+        } else {
+          alert("Špatné heslo.");
+          location.href = "about:blank";
+        }
+      } catch (e) {
+        alert("Tento prohlížeč nepodporuje potřebné šifrovací funkce.");
+        location.href = "about:blank";
+      }
+    });
+  })();
+</script>
 
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
