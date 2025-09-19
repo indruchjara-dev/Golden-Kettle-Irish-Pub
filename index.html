@@ -192,16 +192,24 @@
     .marker-panel label { display: block; margin-bottom: 6px; }
     .marker-panel small { color: #666; }
 
+    /* ✅ UPRAVENÝ „ghost“ – stejné ukotvení i rozměry jako .icon */
     .marker-ghost {
       position: absolute;
-      width: 24px;
-      height: 24px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       pointer-events: none;
-      transform: translate(-50%, -50%);
+      /* žádný translate – ukotveno levým horním rohem */
       border: 2px dashed #333;
       background: rgba(255,255,255,.5);
       z-index: 4;
+      box-sizing: border-box;
+    }
+    @media (max-width: 600px), (pointer: coarse) {
+      .marker-ghost { width: 6px; height: 6px; border-width: 1px; }
+    }
+    @media (max-width: 360px) {
+      .marker-ghost { width: 5px; height: 5px; border-width: 1px; }
     }
 
     .copy-toast {
